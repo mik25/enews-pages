@@ -1,26 +1,27 @@
-// Easynews credentials
-const EASYNEWS_USERNAME = Deno.env.get('EASYNEWS_USERNAME');
-const EASYNEWS_PASSWORD = Deno.env.get('EASYNEWS_PASSWORD');
+// Define the environment variables
+const EASYNEWS_USERNAME = ENV.EASYNEWS_USERNAME;
+const EASYNEWS_PASSWORD = ENV.EASYNEWS_PASSWORD;
+const OMDB_API_KEY = ENV.OMDB_API_KEY;
 
-// OMDB API Key
-const OMDB_API_KEY = Deno.env.get('OMDB_API_KEY');
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request));
+});
 
-export async function onRequest(context) {
-  const { request } = context;
+async function handleRequest(request) {
+  const url = new URL(request.url);
+  const path = url.pathname;
+
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { headers });
+  }
+
   try {
-    const url = new URL(request.url);
-    const path = url.pathname;
-
-    const headers = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    };
-
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { headers });
-    }
-
     let response;
     if (path === '/manifest.json') {
       response = handleManifest();
@@ -36,17 +37,11 @@ export async function onRequest(context) {
 
     return response;
   } catch (error) {
-    logError(error);
     return new Response(JSON.stringify({ error: 'An unexpected error occurred' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }
-}
-
-function logError(error) {
-  console.error('Error:', error.message);
-  console.error('Stack:', error.stack);
 }
 
 function handleManifest() {
@@ -74,8 +69,6 @@ async function handleStream(request) {
 
   imdbId = imdbId.replace(/\.json$/, '');
   imdbId = decodeURIComponent(imdbId);
-
-  console.log(`Handling stream request for IMDb ID: ${imdbId}`);
 
   try {
     const [baseImdbId, season, episode] = imdbId.split(':');
@@ -112,7 +105,6 @@ async function handleStream(request) {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error in handleStream:', error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
