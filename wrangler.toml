@@ -1,0 +1,77 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "news-pages"
+compatibility_date = "2024-07-22"
+compatibility_flags = ["nodejs_compat"]
+
+# Specify the directory where your functions are located
+[functions]
+directory = "functions"
+
+# Configuration for routing functions
+[[routes]]
+pattern = "/*"
+script = "functions/stream.js"
+
+# Uncomment and configure the following sections if you need additional bindings or features
+# [placement]
+# mode = "smart"
+
+# [vars]
+# MY_VARIABLE = "production_value"
+
+# [ai]
+# binding = "AI"
+
+# [[analytics_engine_datasets]]
+# binding = "MY_DATASET"
+
+# [browser]
+# binding = "MY_BROWSER"
+
+# [[d1_databases]]
+# binding = "MY_DB"
+# database_name = "my-database"
+# database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# [[dispatch_namespaces]]
+# binding = "MY_DISPATCHER"
+# namespace = "my-namespace"
+
+# [[durable_objects.bindings]]
+# name = "MY_DURABLE_OBJECT"
+# class_name = "MyDurableObject"
+
+# [[migrations]]
+# tag = "v1"
+# new_classes = ["MyDurableObject"]
+
+# [[hyperdrive]]
+# binding = "MY_HYPERDRIVE"
+# id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# [[kv_namespaces]]
+# binding = "MY_KV_NAMESPACE"
+# id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# [[mtls_certificates]]
+# binding = "MY_CERTIFICATE"
+# certificate_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# [[queues.producers]]
+# binding = "MY_QUEUE"
+# queue = "my-queue"
+
+# [[queues.consumers]]
+# queue = "my-queue"
+
+# [[r2_buckets]]
+# binding = "MY_BUCKET"
+# bucket_name = "my-bucket"
+
+# [[services]]
+# binding = "MY_SERVICE"
+# service = "my-service"
+
+# [[vectorize]]
+# binding = "MY_INDEX"
+# index_name = "my-index"
