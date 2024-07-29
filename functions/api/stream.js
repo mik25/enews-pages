@@ -1,7 +1,7 @@
-// Define the environment variables
-const EASYNEWS_USERNAME = ENV.EASYNEWS_USERNAME || '';
-const EASYNEWS_PASSWORD = ENV.EASYNEWS_PASSWORD || '';
-const OMDB_API_KEY = ENV.OMDB_API_KEY || '';
+// Hardcoded environment variables for testing
+const EASYNEWS_USERNAME = 'your_username_here';
+const EASYNEWS_PASSWORD = 'your_password_here';
+const OMDB_API_KEY = 'your_omdb_api_key_here';
 
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
