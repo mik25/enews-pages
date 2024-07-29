@@ -1,6 +1,9 @@
-const EASYNEWS_USERNAME = process.env.EASYNEWS_USERNAME;
-const EASYNEWS_PASSWORD = process.env.EASYNEWS_PASSWORD;
-const OMDB_API_KEY = process.env.OMDB_API_KEY;
+// Easynews credentials
+const EASYNEWS_USERNAME = Deno.env.get('EASYNEWS_USERNAME');
+const EASYNEWS_PASSWORD = Deno.env.get('EASYNEWS_PASSWORD');
+
+// OMDB API Key
+const OMDB_API_KEY = Deno.env.get('OMDB_API_KEY');
 
 export async function onRequest(context) {
   const { request } = context;
@@ -69,7 +72,10 @@ async function handleStream(request) {
   const url = new URL(request.url);
   let imdbId = url.pathname.split('/').pop();
   
+  // Remove .json extension if present
   imdbId = imdbId.replace(/\.json$/, '');
+
+  // Decode the URL-encoded imdbId
   imdbId = decodeURIComponent(imdbId);
 
   console.log(`Handling stream request for IMDb ID: ${imdbId}`);
@@ -234,6 +240,7 @@ function parseEasynewsSearchResults(html) {
     totalResults++;
     let filename = match[4];
     
+    // Skip files with "sample" in the name (case-insensitive)
     if (filename.toLowerCase().includes('sample')) {
       filteredOutSamples++;
       continue;
