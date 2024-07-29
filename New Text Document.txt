@@ -1,0 +1,17 @@
+{
+  "name": "pages-enews",
+  "version": "1.0.0",
+  "description": "A project for deploying a Cloudflare Worker script to Cloudflare Pages.",
+  "main": "index.js",
+  "scripts": {
+    "start": "echo 'No start script defined'",
+    "test": "echo 'No test script defined'"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": "16.x"
+  },
+  "author": "",
+  "license": "MIT"
+}

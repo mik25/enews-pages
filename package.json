@@ -1,0 +1,13 @@
+{
+  "name": "enews-pages",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "wrangler dev",
+    "build": "wrangler build",
+    "deploy": "wrangler publish"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
