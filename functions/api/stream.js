@@ -1,27 +1,32 @@
-// Hardcoded environment variables for testing
-const EASYNEWS_USERNAME = 'your_username_here';
-const EASYNEWS_PASSWORD = 'your_password_here';
-const OMDB_API_KEY = 'your_omdb_api_key_here';
+// Hardcoded credentials for testing
+const EASYNEWS_USERNAME = 'chadbell';
+const EASYNEWS_PASSWORD = 'Myahbell12345';
+const OMDB_API_KEY = 'fd20b0e6'; // Hardcoded OMDB API key
 
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
 });
 
+function logError(error) {
+  console.error('Error:', error.message);
+  console.error('Stack:', error.stack);
+}
+
 async function handleRequest(request) {
-  const url = new URL(request.url);
-  const path = url.pathname;
-
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
-
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { headers });
-  }
-
   try {
+    const url = new URL(request.url);
+    const path = url.pathname;
+
+    const headers = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    };
+
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers });
+    }
+
     let response;
     if (path === '/manifest.json') {
       response = handleManifest();
@@ -37,6 +42,7 @@ async function handleRequest(request) {
 
     return response;
   } catch (error) {
+    logError(error);
     return new Response(JSON.stringify({ error: 'An unexpected error occurred' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
@@ -66,13 +72,19 @@ function handleManifest() {
 async function handleStream(request) {
   const url = new URL(request.url);
   let imdbId = url.pathname.split('/').pop();
-
+  
+  // Remove .json extension if present
   imdbId = imdbId.replace(/\.json$/, '');
+
+  // Decode the URL-encoded imdbId
   imdbId = decodeURIComponent(imdbId);
+
+  console.log(`Handling stream request for IMDb ID: ${imdbId}`);
 
   try {
     const [baseImdbId, season, episode] = imdbId.split(':');
     const itemInfo = await getItemInfoFromOmdb(baseImdbId);
+    console.log('Item info retrieved:', JSON.stringify(itemInfo));
 
     let searchResults;
     if (itemInfo.type === 'series' && season && episode) {
@@ -82,6 +94,7 @@ async function handleStream(request) {
     } else {
       searchResults = await searchEasynews(itemInfo.title, itemInfo.year);
     }
+    console.log(`Found ${searchResults.length} results from Easynews`);
 
     const streams = searchResults.map(result => ({
       name: `Easynews - ${result.filename} (${result.fileSize})`,
@@ -91,7 +104,7 @@ async function handleStream(request) {
       infoHash: result.value,
       fileIdx: 0,
       behaviorHints: {
-        notWebReady: true
+         notWebReady: true
       },
       proxyHeaders: {
         request: {
@@ -105,6 +118,7 @@ async function handleStream(request) {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
+    console.error('Error in handleStream:', error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
@@ -119,24 +133,32 @@ async function getItemInfoFromOmdb(imdbId) {
 
   const url = `http://www.omdbapi.com/?i=${imdbId}&apikey=${OMDB_API_KEY}`;
 
+  console.log(`Fetching OMDB data for IMDb ID: ${imdbId}`);
+
   try {
     const response = await fetch(url);
+    console.log(`OMDB API response status: ${response.status}`);
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log('OMDB API response data:', JSON.stringify(data));
 
     if (data.Response === 'True') {
+      console.log(`Successfully fetched data for: ${data.Title} (${data.Year})`);
       return {
         title: data.Title,
         year: data.Year,
         type: data.Type,
       };
     } else {
+      console.error('OMDB API error:', data.Error);
       throw new Error(data.Error || 'Item not found');
     }
   } catch (error) {
+    console.error('Error in getItemInfoFromOmdb:', error.message);
     throw error;
   }
 }
@@ -150,16 +172,22 @@ async function searchEasynews(title, year) {
     'Authorization': `Basic ${auth}`,
   };
 
+  console.log(`Searching Easynews for: ${searchTerm}`);
+
   try {
     const response = await fetch(searchUrl, { headers });
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const html = await response.text();
+    console.log(`Received Easynews response, length: ${html.length}`);
     const results = parseEasynewsSearchResults(html);
+    console.log(`Filtered results for movie "${title} (${year})": ${results.length}`);
     return results;
   } catch (error) {
+    console.error('Error searching Easynews:', error);
     throw error;
   }
 }
@@ -181,16 +209,22 @@ async function searchEasynewsSeries(title, year, season, episode) {
     'Authorization': `Basic ${auth}`,
   };
 
+  console.log(`Searching Easynews for series: ${searchTerm}`);
+
   try {
     const response = await fetch(searchUrl, { headers });
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const html = await response.text();
+    console.log(`Received Easynews response, length: ${html.length}`);
     const results = parseEasynewsSearchResults(html);
+    console.log(`Filtered results for series "${searchTerm}": ${results.length}`);
     return results;
   } catch (error) {
+    console.error('Error searching Easynews for series:', error);
     throw error;
   }
 }
@@ -207,6 +241,7 @@ function parseEasynewsSearchResults(html) {
     totalResults++;
     let filename = match[4];
     
+    // Skip files with "sample" in the name (case-insensitive)
     if (filename.toLowerCase().includes('sample')) {
       filteredOutSamples++;
       continue;
